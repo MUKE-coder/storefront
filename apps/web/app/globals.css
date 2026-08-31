@@ -1,0 +1,286 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* v3.28.1 — theme-aware design tokens.
+ *
+ * Every token is stored as a bare HSL triplet ("H S% L%") because
+ * tailwind.config.ts wraps them in hsl(...) so that Tailwind's opacity
+ * modifiers (bg-ink/80, text-background/70, …) keep working. Never store a
+ * hex value here: `hsl(#0f172a)` is invalid CSS and silently drops the
+ * declaration, which takes the whole palette down with it.
+ *
+ * A single THEME=<name> in .env paints both web and admin surfaces. */
+
+@layer base {
+  /* atlas (default) */
+  :root,
+  [data-theme='atlas'] {
+    --background: 0 0% 100%;
+    --foreground: 220 26% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 26% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 26% 9%;
+
+    --primary: 220 26% 9%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 96%;
+    --secondary-foreground: 220 26% 9%;
+
+    --muted: 220 20% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 20% 94%;
+    --accent-foreground: 220 26% 9%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --info: 199 89% 48%;
+
+    --border: 220 14% 91%;
+    --input: 220 14% 91%;
+    --ring: 220 26% 9%;
+
+    --radius: 0.75rem;
+
+    /* Brand accents */
+    --ink: 220 26% 9%;
+    --brass: 36 34% 46%;
+    --brass-dark: 36 36% 34%;
+    --brass-light: 36 44% 72%;
+  }
+
+  [data-theme='aurora'] {
+    --background: 240 20% 99%;
+    --foreground: 240 6% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 10%;
+    --primary: 240 6% 10%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 9% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted: 240 9% 96%;
+    --muted-foreground: 240 4% 53%;
+    --accent: 240 9% 94%;
+    --accent-foreground: 240 6% 10%;
+    --border: 240 6% 84%;
+    --input: 240 6% 84%;
+    --ring: 240 6% 10%;
+    --ink: 240 6% 10%;
+  }
+
+  [data-theme='pulse'] {
+    --background: 220 20% 97%;
+    --foreground: 228 14% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 228 14% 13%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 14% 13%;
+    --primary: 214 100% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 27% 95%;
+    --secondary-foreground: 228 14% 13%;
+    --muted: 214 27% 95%;
+    --muted-foreground: 219 15% 60%;
+    --accent: 214 27% 92%;
+    --accent-foreground: 228 14% 13%;
+    --border: 216 20% 90%;
+    --input: 216 20% 90%;
+    --ring: 214 100% 38%;
+    --ink: 228 14% 13%;
+  }
+
+  [data-theme='midnight'] {
+    --background: 240 22% 5%;
+    --foreground: 240 33% 92%;
+    --card: 240 24% 8%;
+    --card-foreground: 240 33% 92%;
+    --popover: 240 24% 10%;
+    --popover-foreground: 240 33% 92%;
+    --primary: 249 73% 63%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 24% 12%;
+    --secondary-foreground: 240 33% 92%;
+    --muted: 240 24% 12%;
+    --muted-foreground: 240 14% 55%;
+    --accent: 240 22% 16%;
+    --accent-foreground: 240 33% 92%;
+    --destructive: 0 100% 71%;
+    --destructive-foreground: 240 22% 5%;
+    --border: 240 17% 20%;
+    --input: 240 17% 20%;
+    --ring: 249 73% 63%;
+    --ink: 240 22% 5%;
+    --brass: 36 44% 60%;
+    --brass-dark: 36 40% 46%;
+    --brass-light: 36 52% 78%;
+  }
+
+  .dark {
+    --background: 220 26% 7%;
+    --foreground: 0 0% 98%;
+    --card: 220 24% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 24% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 220 26% 9%;
+    --secondary: 220 20% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 220 10% 64%;
+    --accent: 220 20% 18%;
+    --accent-foreground: 0 0% 98%;
+    --border: 220 16% 20%;
+    --input: 220 16% 20%;
+    --ring: 0 0% 83%;
+    --ink: 220 26% 5%;
+  }
+
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  ::selection {
+    background: hsl(var(--foreground) / 0.15);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  /* Small caps label that sits above a section heading. Lives in the
+   * components layer so a sibling `text-*` utility can recolour it. */
+  .eyebrow {
+    @apply text-muted-foreground font-sans text-[11px] font-semibold uppercase tracking-[0.16em];
+  }
+
+  /* Blog prose styles for rendered HTML content */
+  .prose-blog {
+    @apply text-foreground;
+    font-size: 1.0625rem;
+    line-height: 1.8;
+  }
+  .prose-blog h1 {
+    @apply text-foreground mb-4 mt-10 text-[2rem] font-bold tracking-tight;
+  }
+  .prose-blog h2 {
+    @apply text-foreground mb-3 mt-8 text-2xl font-bold tracking-tight;
+  }
+  .prose-blog h3 {
+    @apply text-foreground mb-2 mt-7 text-xl font-semibold;
+  }
+  .prose-blog h4 {
+    @apply text-foreground mb-2 mt-6 text-lg font-semibold;
+  }
+  .prose-blog p {
+    @apply text-muted-foreground mb-5;
+  }
+  .prose-blog a {
+    @apply text-ink underline decoration-1 underline-offset-2 transition-colors;
+  }
+  .prose-blog a:hover {
+    @apply text-brass;
+  }
+  .prose-blog strong {
+    @apply text-foreground font-semibold;
+  }
+  .prose-blog em {
+    font-style: italic;
+  }
+  .prose-blog ul {
+    @apply mb-5 list-disc pl-6;
+  }
+  .prose-blog ol {
+    @apply mb-5 list-decimal pl-6;
+  }
+  .prose-blog li {
+    @apply text-muted-foreground mb-1.5;
+  }
+  .prose-blog li::marker {
+    color: hsl(var(--muted-foreground));
+  }
+  .prose-blog blockquote {
+    @apply bg-secondary text-muted-foreground my-6 rounded-r-lg px-5 py-4 italic;
+    border-left: 3px solid hsl(var(--brass));
+  }
+  .prose-blog pre {
+    @apply bg-secondary border-border my-6 overflow-x-auto rounded-xl border p-5 font-mono text-sm leading-relaxed;
+  }
+  .prose-blog code {
+    @apply bg-secondary border-border text-ink rounded border px-1.5 py-0.5 font-mono text-[0.875em];
+  }
+  .prose-blog pre code {
+    @apply text-foreground border-none bg-transparent p-0 text-[length:inherit];
+  }
+  .prose-blog img {
+    @apply border-border my-6 h-auto max-w-full rounded-xl border;
+  }
+  .prose-blog hr {
+    @apply border-border my-8 border-t;
+  }
+  .prose-blog table {
+    @apply my-6 w-full border-collapse;
+  }
+  .prose-blog th {
+    @apply border-border text-foreground border-b-2 px-4 py-3 text-left text-sm font-semibold;
+  }
+  .prose-blog td {
+    @apply border-border text-muted-foreground border-b px-4 py-3 text-sm;
+  }
+  .prose-blog tr:last-child td {
+    @apply border-b-0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .hairline {
+    @apply border-border border-t;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
