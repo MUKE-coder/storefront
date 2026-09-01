@@ -5,14 +5,13 @@ import ProductGridWithRatings, {
   type Product as GridProduct,
 } from '@/components/grit-ui/product-grids/grid-with-ratings'
 
-import { ProductGridSkeleton } from '@/components/shop/product-grid-skeleton'
+import { ProductGridSkeleton } from '@/components/skeletons'
 import { useCatalogue } from '@/hooks/use-catalogue'
 import { addToCart } from '@/lib/cart'
 
 export default function HomePageProductListing() {
   const { data, isLoading } = useCatalogue()
-  if (isLoading) return <ProductGridSkeleton />
-  // if (isLoading) return <p>Loading categories...</p>
+  if (isLoading) return <ProductGridSkeleton count={8} columns="grid-cols-2 md:grid-cols-4" />
 
   const catalogue = data?.data ?? []
 

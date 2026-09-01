@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { usePublicBlog } from "@/hooks/use-blogs";
+import { BlogDetailSkeleton } from "@/components/skeletons";
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -11,21 +12,7 @@ export default function BlogDetailPage() {
   const { data: blog, isLoading, error } = usePublicBlog(slug);
 
   if (isLoading) {
-    return (
-      <div className="mx-auto max-w-3xl px-6 py-16 animate-pulse">
-        <div className="h-4 bg-bg-hover rounded w-24 mb-8" />
-        <div className="h-8 bg-bg-hover rounded w-3/4 mb-4" />
-        <div className="h-4 bg-bg-hover rounded w-1/3 mb-12" />
-        <div className="aspect-[2/1] bg-bg-hover rounded-xl mb-12" />
-        <div className="space-y-4">
-          <div className="h-4 bg-bg-hover rounded w-full" />
-          <div className="h-4 bg-bg-hover rounded w-full" />
-          <div className="h-4 bg-bg-hover rounded w-5/6" />
-          <div className="h-4 bg-bg-hover rounded w-full" />
-          <div className="h-4 bg-bg-hover rounded w-4/6" />
-        </div>
-      </div>
-    );
+    return <BlogDetailSkeleton />;
   }
 
   if (error || !blog) {

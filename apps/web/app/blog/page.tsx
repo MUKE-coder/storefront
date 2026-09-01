@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePublicBlogs } from "@/hooks/use-blogs";
+import { BlogCardGridSkeleton } from "@/components/skeletons";
 
 export default function BlogListPage() {
   const [page, setPage] = useState(1);
@@ -23,22 +24,7 @@ export default function BlogListPage() {
 
       {/* Blog grid */}
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-xl border border-border bg-bg-elevated overflow-hidden animate-pulse"
-            >
-              <div className="h-52 bg-bg-hover" />
-              <div className="p-5 space-y-3">
-                <div className="h-3 bg-bg-hover rounded w-1/3" />
-                <div className="h-5 bg-bg-hover rounded w-3/4" />
-                <div className="h-3 bg-bg-hover rounded w-full" />
-                <div className="h-3 bg-bg-hover rounded w-2/3" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <BlogCardGridSkeleton />
       ) : blogs.length > 0 ? (
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
