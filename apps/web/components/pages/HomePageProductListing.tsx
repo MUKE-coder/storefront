@@ -1,4 +1,3 @@
-// apps/web/app/page.tsx
 'use client'
 
 import ProductGridWithRatings, {
@@ -6,41 +5,56 @@ import ProductGridWithRatings, {
 } from '@/components/grit-ui/product-grids/grid-with-ratings'
 
 import { ProductGridSkeleton } from '@/components/skeletons'
+import { ProductGridError } from '@/components/errors'
+import { QueryBoundary } from '@/components/query-boundary'
 import { useCatalogue } from '@/hooks/use-catalogue'
 import { addToCart } from '@/lib/cart'
 
+/**
+ * The featured product row on the home page. Its own boundary, so a catalogue
+ * outage costs this row and leaves the category rail above it alone.
+ */
 export default function HomePageProductListing() {
-  const { data, isLoading } = useCatalogue()
-  if (isLoading) return <ProductGridSkeleton count={8} columns="grid-cols-2 md:grid-cols-4" />
-
-  const catalogue = data?.data ?? []
-
-  const products: GridProduct[] = catalogue.map((p) => ({
-    id: p.id,
-    name: p.name,
-    price: p.price,
-    originalPrice: p.compare_at_price > p.price ? p.compare_at_price : undefined,
-    // The card rendition, not the full image. Twenty cards drawn from the
-    // 1600px version is about four megabytes to render tiles a few hundred
-    // pixels wide. Falls back to the original for anything uploaded before the
-    // profile existed, or that the optimiser declined.
-    image: p.images?.[0]?.url ?? '',
-    href: `/products/${p.slug}`,
-  }))
-
-  // The block hands back its own shape, and the cart wants yours. Keep the
-  // originals by id rather than rebuilding a product from what the block knows.
-  const byID = new Map(catalogue.map((p) => [p.id, p]))
+  const catalogue = useCatalogue()
 
   return (
-    <ProductGridWithRatings
-      title="Featured products"
-      viewAllHref="/products"
-      products={products}
-      onAdd={(item) => {
-        const product = byID.get(item.id)
-        if (product) addToCart(product)
+    <QueryBoundary
+      query={catalogue}
+      skeleton={<ProductGridSkeleton count={8} columns="grid-cols-2 md:grid-cols-4" />}
+      error={({ retry, error }) => <ProductGridError onRetry={retry} error={error} />}
+    >
+      {(page) => {
+        const items = page.data ?? []
+
+        const products: GridProduct[] = items.map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          originalPrice: p.compare_at_price > p.price ? p.compare_at_price : undefined,
+          // The card rendition, not the full image. Twenty cards drawn from the
+          // 1600px version is about four megabytes to render tiles a few hundred
+          // pixels wide. Falls back to the original for anything uploaded before the
+          // profile existed, or that the optimiser declined.
+          image: p.images?.[0]?.url ?? '',
+          href: `/products/${p.slug}`,
+        }))
+
+        // The block hands back its own shape, and the cart wants yours. Keep the
+        // originals by id rather than rebuilding a product from what the block knows.
+        const byID = new Map(items.map((p) => [p.id, p]))
+
+        return (
+          <ProductGridWithRatings
+            title="Featured products"
+            viewAllHref="/products"
+            products={products}
+            onAdd={(item) => {
+              const product = byID.get(item.id)
+              if (product) addToCart(product)
+            }}
+          />
+        )
       }}
-    />
+    </QueryBoundary>
   )
 }

@@ -5,18 +5,20 @@ import { SkeletonShell } from "./skeleton-shell"
 /** Category tile placeholder: the 3/4 portrait cards under the hero. */
 export function CategoryTileGridSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
-      {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} className="aspect-[3/4] w-full rounded-2xl" />
-      ))}
-    </div>
+    <SkeletonShell label="Loading collections">
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
+        {Array.from({ length: count }).map((_, i) => (
+          <Skeleton key={i} className="aspect-[3/4] w-full rounded-2xl" />
+        ))}
+      </div>
+    </SkeletonShell>
   )
 }
 
 /** Hero carousel placeholder — matches the ink slab and its min-heights. */
 export function HeroSkeleton() {
   return (
-    <div className="bg-ink relative overflow-hidden">
+    <SkeletonShell label="Loading featured collection" className="bg-ink relative block overflow-hidden">
       <div className="container flex min-h-[560px] items-center py-20 sm:min-h-[640px]">
         <div className="max-w-xl space-y-6">
           <Skeleton className="bg-background/10 h-3 w-40" />
@@ -39,7 +41,7 @@ export function HeroSkeleton() {
           </div>
         </div>
       </div>
-    </div>
+    </SkeletonShell>
   )
 }
 
@@ -70,10 +72,15 @@ export function SectionHeadingSkeleton({
   )
 }
 
-/** Whole-page placeholder for the storefront home page. */
+/**
+ * Whole-page placeholder for the storefront home page.
+ *
+ * No shell of its own: each section below already carries one, because on the
+ * real page each is a separate fetch that resolves and fails on its own.
+ */
 export function HomeSkeleton() {
   return (
-    <SkeletonShell label="Loading home page">
+    <>
       <HeroSkeleton />
 
       <section className="container py-16 sm:py-20">
@@ -92,6 +99,6 @@ export function HomeSkeleton() {
         <SectionHeadingSkeleton centered />
         <ProductGridSkeleton count={3} columns="grid-cols-1 sm:grid-cols-3" />
       </section>
-    </SkeletonShell>
+    </>
   )
 }

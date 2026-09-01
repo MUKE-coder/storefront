@@ -5,10 +5,11 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePublicBlogs } from "@/hooks/use-blogs";
 import { BlogCardGridSkeleton } from "@/components/skeletons";
+import { BlogGridError } from "@/components/errors";
 
 export default function BlogListPage() {
   const [page, setPage] = useState(1);
-  const { data, isLoading } = usePublicBlogs(page, 9);
+  const { data, isLoading, isError, error, refetch } = usePublicBlogs(page, 9);
   const blogs = data?.blogs || [];
   const meta = data?.meta;
 
@@ -25,6 +26,8 @@ export default function BlogListPage() {
       {/* Blog grid */}
       {isLoading ? (
         <BlogCardGridSkeleton />
+      ) : isError ? (
+        <BlogGridError onRetry={() => refetch()} error={error} />
       ) : blogs.length > 0 ? (
         <>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

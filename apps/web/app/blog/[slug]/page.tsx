@@ -5,33 +5,41 @@ import Link from "next/link";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { usePublicBlog } from "@/hooks/use-blogs";
 import { BlogDetailSkeleton } from "@/components/skeletons";
+import { BlogDetailError } from "@/components/errors";
+import { Button } from "@/components/ui/button";
 
 export default function BlogDetailPage() {
   const params = useParams();
   const slug = typeof params.slug === "string" ? params.slug : "";
-  const { data: blog, isLoading, error } = usePublicBlog(slug);
+  const { data: blog, isLoading, isError, error, refetch } = usePublicBlog(slug);
 
   if (isLoading) {
     return <BlogDetailSkeleton />;
   }
 
-  if (error || !blog) {
+  // A failed request and a post that does not exist are different things.
+  // Telling a reader with flaky wifi that the post was removed is a lie, and
+  // it hides the retry that would actually fix it.
+  if (isError) {
+    return <BlogDetailError onRetry={() => refetch()} error={error} />;
+  }
+
+  if (!blog) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg-elevated border border-border">
-          <span className="text-2xl text-text-muted">404</span>
+        <div className="border-border mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border">
+          <span className="text-muted-foreground text-2xl">404</span>
         </div>
-        <h1 className="text-xl font-semibold text-foreground">Post not found</h1>
-        <p className="mt-2 text-sm text-text-muted">
-          The blog post you're looking for doesn't exist or has been removed.
+        <h1 className="text-foreground text-xl font-semibold">Post not found</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
+          The blog post you&apos;re looking for doesn&apos;t exist or has been removed.
         </p>
-        <Link
-          href="/blog"
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Blog
-        </Link>
+        <Button variant="outline" className="mt-6" asChild>
+          <Link href="/blog">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blog
+          </Link>
+        </Button>
       </div>
     );
   }
