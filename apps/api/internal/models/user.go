@@ -153,6 +153,11 @@ func Models() []interface{} {
 		&OrderItem{},
 		&sequence.Counter{},
 		&Order{},
+				&RecoveryContactToken{},
+		&RecoveryContact{},
+		&Passkey{},
+		&WebAuthnSession{},
+		&OutboxMessage{},
 		// grit:models
 	}
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useId, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import type { FieldDefinition } from "@/lib/resource";
 import { Calendar, ChevronLeft, ChevronRight } from "@/lib/icons";
@@ -79,6 +79,7 @@ function ordOf(iso: string | undefined): number | null {
 }
 
 export function DateField({ field, value, onChange, error }: DateFieldProps) {
+  const fieldId = useId();
   const withTime = field.type === "datetime";
   const selected = parseValue(value);
   const today = todayParts();
@@ -316,6 +317,7 @@ export function DateField({ field, value, onChange, error }: DateFieldProps) {
         <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
           <label className="text-xs text-text-secondary">Time</label>
           <input
+          id={fieldId}
             type="time"
             value={selected ? `${pad(selected.hour)}:${pad(selected.minute)}` : ""}
             onChange={(e) => {
@@ -354,7 +356,7 @@ export function DateField({ field, value, onChange, error }: DateFieldProps) {
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-foreground">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-foreground">
         {field.label}
         {field.required && <span className="text-danger ml-1">*</span>}
       </label>

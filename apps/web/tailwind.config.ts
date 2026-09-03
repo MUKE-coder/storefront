@@ -1,7 +1,10 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
-  darkMode: ['class'],
+  // v4 tightened this type: the array form now means ['class', selector],
+  // so a one-element array no longer compiles. The bare string is the
+  // same behaviour and is what v4 documents.
+  darkMode: 'class',
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     container: {

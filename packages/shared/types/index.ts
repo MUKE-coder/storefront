@@ -25,3 +25,11 @@ export type { Product } from "./product";
 export type { OrderItem } from "./order-item";
 export type { Order } from "./order";
 // grit:types
+export {
+  type Money,
+  currencyExponent,
+  toMajor,
+  fromMajor,
+  formatMoney,
+  zeroMoney,
+} from "./money";

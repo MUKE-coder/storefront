@@ -1,6 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* This app's theme still lives in tailwind.config.ts: the shadcn tokens,
+ * plus brass, ink, the container settings and the tailwindcss-animate
+ * plugin. v4 does not read a config file unless a stylesheet asks for one,
+ * and @config is exactly that ask.
+ *
+ * Without this line every utility built from that config (bg-ink,
+ * text-brass, border-border) is an unknown utility and the build stops on
+ * the first one.
+ *
+ * Moving the theme into an @theme block here is the fuller migration and it
+ * is not required: @config is supported, and it keeps one source of truth
+ * while the site looks exactly as it did. */
+@config "../tailwind.config.ts";
 
 /* v3.28.1 — theme-aware design tokens.
  *

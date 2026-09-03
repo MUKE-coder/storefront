@@ -37,7 +37,7 @@ func registerAPIDocs(r *gin.Engine, db *gorm.DB, cfg *config.Config) {
 		// inside this app. They are not your API, and 111 of their routes in
 		// the reference buries the ~140 that are yours.
 		ExcludePrefixes: []string{"/pulse", "/sentinel", "/studio", "/docs"},
-		Models:          []interface{}{&models.User{}, &models.Upload{}, &models.Blog{}, &models.Category{}, &models.Product{}, &models.OrderItem{}, &models.Order{}, /* grit:docs:models */},
+		Models:          []interface{}{&models.User{}, &models.Upload{}, &models.Blog{}, &models.Category{}, &models.Product{}, &models.OrderItem{}, &models.Order{} /* grit:docs:models */},
 		Auth: gindocs.AuthConfig{
 			Type:         gindocs.AuthBearer,
 			BearerFormat: "JWT",

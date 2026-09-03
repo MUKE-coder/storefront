@@ -11,7 +11,7 @@
 // would never reach the DOM. We use type="text" + inputMode so the
 // numeric keyboard still pops up on mobile.
 
-import { useEffect, useRef, useState } from "react";
+import { useId, useEffect, useRef, useState } from "react";
 import type { FieldDefinition } from "@/lib/resource";
 import { GenerateButton } from "./generate-button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,7 @@ export function parseFormattedNumber(formatted: string): number | "" {
 }
 
 export function NumberField({ field, value, onChange, error, onGenerate }: NumberFieldProps) {
+  const fieldId = useId();
   const kind = field.numberKind ?? "float";
   const allowDecimal = kind === "float";
   const allowNegative = kind !== "uint";
@@ -137,7 +138,7 @@ export function NumberField({ field, value, onChange, error, onGenerate }: Numbe
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <label className="block text-sm font-medium text-foreground">
+        <label htmlFor={fieldId} className="block text-sm font-medium text-foreground">
           {field.label}
           {field.required && <span className="text-danger ml-1">*</span>}
         </label>
@@ -151,6 +152,7 @@ export function NumberField({ field, value, onChange, error, onGenerate }: Numbe
           </span>
         )}
         <Input
+          id={fieldId}
           ref={inputRef}
           type="text"
           inputMode={allowDecimal ? "decimal" : "numeric"}

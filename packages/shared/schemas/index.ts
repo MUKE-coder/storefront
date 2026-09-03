@@ -43,3 +43,4 @@ export {
   type UpdateOrderInput,
 } from "./order";
 // grit:schemas
+export { MoneySchema, type Money } from "./money";

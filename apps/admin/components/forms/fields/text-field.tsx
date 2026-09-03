@@ -1,4 +1,5 @@
 import type { FieldDefinition } from "@/lib/resource";
+import { useId } from "react";
 import { GenerateButton } from "./generate-button";
 import { Input } from "@/components/ui/input";
 
@@ -12,10 +13,11 @@ interface TextFieldProps {
 }
 
 export function TextField({ field, value, onChange, error, onGenerate }: TextFieldProps) {
+  const fieldId = useId();
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <label className="block text-sm font-medium text-foreground">
+        <label htmlFor={fieldId} className="block text-sm font-medium text-foreground">
           {field.label}
           {field.required && <span className="text-danger ml-1">*</span>}
         </label>
@@ -29,6 +31,7 @@ export function TextField({ field, value, onChange, error, onGenerate }: TextFie
           </span>
         )}
         <Input
+          id={fieldId}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}

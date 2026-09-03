@@ -1,4 +1,5 @@
 import type { FieldDefinition } from "@/lib/resource";
+import { useId } from "react";
 import { inputClasses } from "@/components/ui/input";
 
 interface TextareaFieldProps {
@@ -9,9 +10,10 @@ interface TextareaFieldProps {
 }
 
 export function TextareaField({ field, value, onChange, error }: TextareaFieldProps) {
+  const fieldId = useId();
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-foreground">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-foreground">
         {field.label}
         {field.required && <span className="text-danger ml-1">*</span>}
       </label>

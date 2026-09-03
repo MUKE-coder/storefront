@@ -43,6 +43,22 @@ func newTestDB(tb testing.TB) *gorm.DB {
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	require.NoError(tb, err)
+
+	// One connection, and only one.
+	//
+	// Every connection to ":memory:" gets its OWN empty database. The pool
+	// opens a second one as soon as two queries overlap, which they do here
+	// because registering writes its session and activity rows on goroutines:
+	// those land on a fresh, empty database and fail with "no such table" for
+	// tables this function just migrated. The duplicate-email check then finds
+	// no user and the request answers 500 instead of 409.
+	//
+	// Shipped in Grit v3.185.0. Test files are yours to edit, so grit upgrade
+	// does not rewrite them and this had to be applied by hand.
+	sqlDB, err := db.DB()
+	require.NoError(tb, err)
+	sqlDB.SetMaxOpenConns(1)
+
 	require.NoError(tb, db.AutoMigrate(
 		&models.User{},
 		&models.Session{},

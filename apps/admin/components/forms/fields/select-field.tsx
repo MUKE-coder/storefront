@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useId, useState, useRef, useEffect, useMemo } from "react";
 import { apiClient } from "@/lib/api-client";
 import type { FieldDefinition } from "@/lib/resource";
 import { ChevronDown, Check, Search } from "@/lib/icons";
@@ -15,6 +15,7 @@ interface SelectFieldProps {
 // arrow keys + Enter to pick, Escape to close. Works for both command-generated
 // select fields (static options) and fields that pull choices from optionsUrl.
 export function SelectField({ field, value, onChange, error }: SelectFieldProps) {
+  const fieldId = useId();
   const labelKey = field.optionsLabelKey ?? "name";
   const valueKey = field.optionsValueKey ?? "name";
 
@@ -74,7 +75,7 @@ export function SelectField({ field, value, onChange, error }: SelectFieldProps)
 
   return (
     <div className="space-y-1.5" ref={rootRef}>
-      <label className="block text-sm font-medium text-foreground">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-foreground">
         {field.label}
         {field.required && <span className="text-danger ml-1">*</span>}
       </label>

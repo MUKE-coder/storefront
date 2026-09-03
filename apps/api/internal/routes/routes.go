@@ -284,7 +284,7 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 				cfg.GORMStudioUsername: cfg.GORMStudioPassword,
 			})
 		}
-		studio.Mount(r, db, []interface{}{&models.User{}, &models.Upload{}, &models.Blog{}, &models.Category{}, &models.Product{}, &models.OrderItem{}, &models.Order{}, /* grit:studio */}, studioCfg)
+		studio.Mount(r, db, []interface{}{&models.User{}, &models.Upload{}, &models.Blog{}, &models.Category{}, &models.Product{}, &models.OrderItem{}, &models.Order{} /* grit:studio */}, studioCfg)
 		log.Println("GORM Studio mounted at /studio")
 	}
 
@@ -355,6 +355,17 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 		Config:      cfg,
 		Mailer:      svc.Mailer,
 	}
+	// The passkey relying party, built from the origins the frontends run
+	// on. No usable origin means no relying party, and every passkey route
+	// answers 501 rather than panicking: passkeys are optional, a broken
+	// boot is not.
+	passkeys, passkeyErr := services.NewPasskeys(db, cfg.AppName, cfg.CORSOrigins)
+	if passkeyErr != nil {
+		log.Printf("Passkeys disabled: %v", passkeyErr)
+		passkeys = nil
+	}
+	passkeyHandler := handlers.NewPasskeyHandler(db, passkeys, authHandler)
+
 	apiKeyHandler := &handlers.APIKeyHandler{DB: db}
 
 	userHandler := &handlers.UserHandler{
@@ -457,20 +468,6 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 		log.Printf("saml: %v", err)
 	}
 	ssoHandler := handlers.NewSSOHandler(db, authService, cfg, ssoRegistry, samlRegistry)
-	categoryHandler := &handlers.CategoryHandler{
-		DB: db,
-		Storage: svc.Storage,
-	}
-	productHandler := &handlers.ProductHandler{
-		DB: db,
-		Storage: svc.Storage,
-	}
-	orderItemHandler := &handlers.OrderItemHandler{
-		DB: db,
-	}
-	orderHandler := &handlers.OrderHandler{
-		DB: db,
-	}
 	// grit:handlers
 
 	// Health check
@@ -639,13 +636,6 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 		log.Printf("Public endpoints cached for %s", ttl)
 	}
 	{
-		publicAPI.GET("/categories/tree", categoryHandler.TreePublic)
-		publicAPI.GET("/categories", categoryHandler.ListPublic)
-		publicAPI.GET("/categories/:key", categoryHandler.GetPublic)
-		publicAPI.GET("/categories/:key/related", categoryHandler.RelatedPublic)
-		publicAPI.GET("/products", productHandler.ListPublic)
-		publicAPI.GET("/products/:key", productHandler.GetPublic)
-		publicAPI.GET("/products/:key/related", productHandler.RelatedPublic)
 		// grit:routes:public
 	}
 
@@ -654,6 +644,11 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 	{
 		auth.POST("/register", authHandler.Register)
 		auth.POST("/login", authHandler.Login)
+
+		// Passkey sign-in. Public because there is no session yet; the
+		// server-side challenge is what makes it safe.
+		auth.POST("/passkeys/login/begin", passkeyHandler.BeginLogin)
+		auth.POST("/passkeys/login/finish", passkeyHandler.FinishLogin)
 		auth.POST("/refresh", authHandler.Refresh)
 		auth.POST("/forgot-password", authHandler.ForgotPassword)
 		auth.POST("/reset-password", authHandler.ResetPassword)
@@ -802,42 +797,25 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 		// v3.31.68 — poll a background CSV import's progress/result.
 		protected.GET("/imports/:id", importJobHandler.GetByID)
 
-		protected.GET("/categories", categoryHandler.List)
-		protected.GET("/categories/export", categoryHandler.Export)
-		protected.POST("/categories/import", categoryHandler.Import)
-		protected.GET("/categories/import/template", categoryHandler.Template)
-		protected.GET("/categories/:id", categoryHandler.GetByID)
-		protected.GET("/categories/:id/pdf", categoryHandler.PDF)
-		protected.POST("/categories", categoryHandler.Create)
-		protected.PUT("/categories/:id", categoryHandler.Update)
-		protected.PATCH("/categories/:id", categoryHandler.Patch)
-		protected.GET("/products", productHandler.List)
-		protected.GET("/products/export", productHandler.Export)
-		protected.POST("/products/import", productHandler.Import)
-		protected.GET("/products/import/template", productHandler.Template)
-		protected.GET("/products/:id", productHandler.GetByID)
-		protected.GET("/products/:id/pdf", productHandler.PDF)
-		protected.POST("/products", productHandler.Create)
-		protected.PUT("/products/:id", productHandler.Update)
-		protected.PATCH("/products/:id", productHandler.Patch)
-		protected.GET("/order_items", orderItemHandler.List)
-		protected.GET("/order_items/export", orderItemHandler.Export)
-		protected.POST("/order_items/import", orderItemHandler.Import)
-		protected.GET("/order_items/import/template", orderItemHandler.Template)
-		protected.GET("/order_items/:id", orderItemHandler.GetByID)
-		protected.GET("/order_items/:id/pdf", orderItemHandler.PDF)
-		protected.POST("/order_items", orderItemHandler.Create)
-		protected.PUT("/order_items/:id", orderItemHandler.Update)
-		protected.PATCH("/order_items/:id", orderItemHandler.Patch)
-		protected.GET("/orders", orderHandler.List)
-		protected.GET("/orders/export", orderHandler.Export)
-		protected.POST("/orders/import", orderHandler.Import)
-		protected.GET("/orders/import/template", orderHandler.Template)
-		protected.GET("/orders/:id", orderHandler.GetByID)
-		protected.GET("/orders/:id/pdf", orderHandler.PDF)
-		protected.POST("/orders", orderHandler.Create)
-		protected.PUT("/orders/:id", orderHandler.Update)
-		protected.PATCH("/orders/:id", orderHandler.Patch)
+		// Passkey management, on an account you are already signed in to.
+		protected.GET("/auth/passkeys", passkeyHandler.List)
+		protected.POST("/auth/passkeys/register/begin", passkeyHandler.BeginRegistration)
+		protected.POST("/auth/passkeys/register/finish", passkeyHandler.FinishRegistration)
+		protected.PATCH("/auth/passkeys/:id", passkeyHandler.Rename)
+		protected.DELETE("/auth/passkeys/:id", passkeyHandler.Delete)
+
+		// Recovery contacts. Every write takes the account password, because a
+		// recovery address is a second way in and a live session is exactly
+		// what somebody on a borrowed laptop already has.
+		recoveryHandler := handlers.NewRecoveryHandler(db, svc.Mailer)
+		protected.GET("/auth/security", recoveryHandler.Overview)
+		protected.POST("/auth/recovery/email", recoveryHandler.SetEmail)
+		protected.POST("/auth/recovery/email/verify", recoveryHandler.VerifyEmail)
+		protected.DELETE("/auth/recovery/email", recoveryHandler.ClearEmail)
+		protected.POST("/auth/recovery/phone", recoveryHandler.SetPhone)
+		protected.POST("/auth/recovery/phone/verify", recoveryHandler.VerifyPhone)
+		protected.DELETE("/auth/recovery/phone", recoveryHandler.ClearPhone)
+
 		// grit:routes:protected
 	}
 
@@ -978,14 +956,6 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 		admin.PUT("/settings", settingsHandler.Update)
 		admin.DELETE("/settings/:key", settingsHandler.Reset)
 
-		admin.DELETE("/categories/:id", categoryHandler.Delete)
-		admin.POST("/categories/bulk", categoryHandler.Bulk)
-		admin.DELETE("/products/:id", productHandler.Delete)
-		admin.POST("/products/bulk", productHandler.Bulk)
-		admin.DELETE("/order_items/:id", orderItemHandler.Delete)
-		admin.POST("/order_items/bulk", orderItemHandler.Bulk)
-		admin.DELETE("/orders/:id", orderHandler.Delete)
-		admin.POST("/orders/bulk", orderHandler.Bulk)
 		// grit:routes:admin
 	}
 
@@ -999,13 +969,23 @@ func Setup(db *gorm.DB, cfg *config.Config, svc *Services) *gin.Engine {
 	}
 
 	// Custom role-restricted routes
-		categoryTreeHandler := handlers.NewCategoryTreeHandler(db)
-		protected.GET("/categories/tree", categoryTreeHandler.GetTree)
-		protected.GET("/categories/:id/breadcrumbs", categoryTreeHandler.GetBreadcrumbs)
-		protected.PATCH("/categories/:id/move", categoryTreeHandler.Move)
-		protected.POST("/categories/reorder", categoryTreeHandler.Reorder)
-		protected.POST("/categories/rebuild-tree", categoryTreeHandler.RebuildPaths)
 	// grit:routes:custom
+
+	// Every generated resource, each from its own <resource>_routes.go.
+	//
+	// A resource file registers itself from an init(), so this loop is the
+	// only place routes.go mentions them. Adding a resource does not edit
+	// this file, and neither does removing one.
+	mountResources(&Mount{
+		Engine:    r,
+		DB:        db,
+		Cfg:       cfg,
+		Svc:       svc,
+		V1:        v1,
+		Public:    publicAPI,
+		Protected: protected,
+		Admin:     admin,
+	})
 
 	mountLegacyAPIAlias(r)
 
